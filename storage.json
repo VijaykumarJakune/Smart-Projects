@@ -1,0 +1,146 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "metadata": { "description": "Location for the storage account" }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": { "description": "Globally unique name (lowercase, 3-24 chars)" }
+        },
+        "skuName": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS",
+                "Premium_LRS"
+            ],
+            "metadata": { "description": "Replication SKU" }
+        },
+        "isHnsEnabled": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": { "description": "Enable Data Lake Gen2" }
+        },
+        "allowBlobPublicAccess": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "minTlsVersion": {
+            "type": "string",
+            "defaultValue": "TLS1_2",
+            "allowedValues": [ "TLS1_0", "TLS1_1", "TLS1_2" ]
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {
+                "project": "columbia-sci",
+                "env": "dev",
+                "owner": "shankar.jakune",
+                "costCenter": "int"
+            }
+        },
+        "publicNetworkAccess": {
+            "type": "string",
+            "defaultValue": "Enabled",
+            "allowedValues": [ "Enabled", "Disabled" ]
+        },
+        "ipRules": {
+            "type": "array",
+            "defaultValue": []
+        },
+        "createContainers": {
+            "type": "bool",
+            "defaultValue": true
+        },
+        "containers": {
+            "type": "array",
+            "defaultValue": [ "raw", "staging", "processed" ]
+        }
+    },
+    "variables": {
+        "kind": "StorageV2"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2023-05-01",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('tags')]",
+            "sku": { "name": "[parameters('skuName')]" },
+            "kind": "[variables('kind')]",
+            "properties": {
+                "allowBlobPublicAccess": "[parameters('allowBlobPublicAccess')]",
+                "minimumTlsVersion": "[parameters('minTlsVersion')]",
+                "supportsHttpsTrafficOnly": true,
+                "isHnsEnabled": "[parameters('isHnsEnabled')]",
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "defaultAction": "Deny",
+                    "ipRules": [
+                        {
+                            "value": "[if(greater(length(parameters('ipRules')), 0), parameters('ipRules')[0], json('null'))]",
+                            "action": "Allow"
+                        }
+                    ],
+                    "virtualNetworkRules": []
+                },
+                "publicNetworkAccess": "[parameters('publicNetworkAccess')]",
+                "encryption": {
+                    "keySource": "Microsoft.Storage",
+                    "services": {
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2023-01-01",
+            "name": "[format('{0}/default', parameters('storageAccountName'))]",
+            "properties": {
+                "isVersioningEnabled": true,
+                "changeFeed": { "enabled": true }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            ]
+        },
+        {
+            "condition": "[parameters('createContainers')]",
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2023-01-01",
+            "name": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('containers')[copyIndex()])]",
+            "copy": {
+                "name": "containerCopy",
+                "count": "[length(parameters('containers'))]"
+            },
+            "properties": {
+                "publicAccess": "None",
+                "metadata": { "stage": "[parameters('containers')[copyIndex()]]" }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccountName'), 'default')]"
+            ]
+        }
+    ],
+    "outputs": {
+        "storageAccountId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+        }
+    }
+}
