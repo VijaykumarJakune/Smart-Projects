@@ -14,15 +14,15 @@ stages:
     jobs:
       - job: validate
         pool:
-          name: 'Default'   # <-- Replace with your self-hosted pool name
+          name: 'Default'   # <-- Your self-hosted agent pool name
         steps:
           - checkout: self
 
-          # Debug step to confirm files exist
+          # Debug: show full repo structure
           - script: |
-              echo "Working directory: $(Build.SourcesDirectory)"
-              dir $(Build.SourcesDirectory)\infra
-            displayName: 'List infra folder contents'
+              echo "Repo root: $(Build.SourcesDirectory)"
+              dir $(Build.SourcesDirectory) /s
+            displayName: 'List all repo files'
 
           - task: AzureCLI@2
             displayName: 'What-If Deployment'
@@ -43,13 +43,13 @@ stages:
     jobs:
       - job: deploy
         pool:
-          name: 'Default'   # <-- Same pool for consistency
+          name: 'Default'
         steps:
           - checkout: self
 
-          # Debug step again before deployment
+          # Debug: confirm files again before deploy
           - script: |
-              echo "Working directory: $(Build.SourcesDirectory)"
+              echo "Repo root: $(Build.SourcesDirectory)"
               dir $(Build.SourcesDirectory)\infra
             displayName: 'List infra folder contents'
 
