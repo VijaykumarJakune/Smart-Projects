@@ -1,4 +1,3 @@
-
 trigger:
   branches:
     include:
@@ -15,7 +14,7 @@ stages:
     jobs:
       - job: validate
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'   # <-- Replace with your self-hosted pool name
         steps:
           - checkout: self
           - task: AzureCLI@2
@@ -37,7 +36,7 @@ stages:
     jobs:
       - job: deploy
         pool:
-          vmImage: 'ubuntu-latest'
+          name: 'Default'   # <-- Same pool for consistency
         steps:
           - checkout: self
           - task: AzureCLI@2
@@ -50,8 +49,7 @@ stages:
                 az deployment group create \
                   --subscription $(subscriptionId) \
                   --resource-group $(resourceGroup) \
-                  --name "storage-deploy-$(date +%Y%m%d%H%M%S)" \
+                  --name "storage-deploy-$(Build.BuildId)" \
                   --template-file infra/storage.json \
                   --parameters @infra/storage.parameters.dev.json \
                   --verbose
- 
