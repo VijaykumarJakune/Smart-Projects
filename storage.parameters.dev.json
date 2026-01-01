@@ -22,7 +22,7 @@
     },
     "tags": {
       "value": {
-        "project": "columbia-sci",
+        "project": "columbia-sci-1",
         "env": "dev",
         "owner": "shankar.jakune",
         "costCenter": "infra"
