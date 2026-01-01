@@ -17,6 +17,13 @@ stages:
           name: 'Default'   # <-- Replace with your self-hosted pool name
         steps:
           - checkout: self
+
+          # Debug step to confirm files exist
+          - script: |
+              echo "Working directory: $(Build.SourcesDirectory)"
+              dir $(Build.SourcesDirectory)\infra
+            displayName: 'List infra folder contents'
+
           - task: AzureCLI@2
             displayName: 'What-If Deployment'
             inputs:
@@ -27,8 +34,8 @@ stages:
                 az deployment group what-if `
                   --subscription $(subscriptionId) `
                   --resource-group $(resourceGroup) `
-                  --template-file infra/storage.json `
-                  --parameters @infra/storage.parameters.dev.json
+                  --template-file $(Build.SourcesDirectory)\infra\storage.json `
+                  --parameters @$(Build.SourcesDirectory)\infra\storage.parameters.dev.json
 
   - stage: Deploy
     displayName: 'Deploy Storage Account'
@@ -39,6 +46,13 @@ stages:
           name: 'Default'   # <-- Same pool for consistency
         steps:
           - checkout: self
+
+          # Debug step again before deployment
+          - script: |
+              echo "Working directory: $(Build.SourcesDirectory)"
+              dir $(Build.SourcesDirectory)\infra
+            displayName: 'List infra folder contents'
+
           - task: AzureCLI@2
             displayName: 'Deploy ARM Template'
             inputs:
@@ -50,6 +64,6 @@ stages:
                   --subscription $(subscriptionId) `
                   --resource-group $(resourceGroup) `
                   --name "storage-deploy-$(Build.BuildId)" `
-                  --template-file infra/storage.json `
-                  --parameters @infra/storage.parameters.dev.json `
+                  --template-file $(Build.SourcesDirectory)\infra\storage.json `
+                  --parameters @$(Build.SourcesDirectory)\infra\storage.parameters.dev.json `
                   --verbose
