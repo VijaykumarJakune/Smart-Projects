@@ -1,0 +1,69 @@
+trigger:
+  branches:
+    include:
+      - storagedeployment  # <-- Your active branch
+
+variables:
+  azureServiceConnection: 'AzureConn'    
+  subscriptionId: '2edf1b4c-7dc2-4bae-883b-d07e9e31d584'
+  resourceGroup: 'rg-storage-demo'             
+
+stages:
+  - stage: Validate
+    displayName: 'Validate ARM Template'
+    jobs:
+      - job: validate
+        pool:
+          name: 'Default'   # <-- Your self-hosted agent pool name
+        steps:
+          - checkout: self
+
+          # Debug: confirm file presence
+          - script: |
+              echo "Repo root: $(Build.SourcesDirectory)"
+              dir $(Build.SourcesDirectory)
+            displayName: 'List repo root contents'
+
+          - task: AzureCLI@2
+            displayName: 'What-If Deployment'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: ps
+              scriptLocation: inlineScript
+              inlineScript: |
+                az deployment group what-if `
+                  --subscription $(subscriptionId) `
+                  --resource-group $(resourceGroup) `
+                  --template-file $(Build.SourcesDirectory)\storage.json `
+                  --parameters @$(Build.SourcesDirectory)\storage.parameters.dev.json
+
+  - stage: Deploy
+    displayName: 'Deploy Storage Account'
+    dependsOn: Validate
+    jobs:
+      - job: deploy
+        pool:
+          name: 'Default'
+        steps:
+          - checkout: self
+
+          # Debug: confirm file presence again
+          - script: |
+              echo "Repo root: $(Build.SourcesDirectory)"
+              dir $(Build.SourcesDirectory)
+            displayName: 'List repo root contents'
+
+          - task: AzureCLI@2
+            displayName: 'Deploy ARM Template'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: ps
+              scriptLocation: inlineScript
+              inlineScript: |
+                az deployment group create `
+                  --subscription $(subscriptionId) `
+                  --resource-group $(resourceGroup) `
+                  --name "storage-deploy-$(Build.BuildId)" `
+                  --template-file $(Build.SourcesDirectory)\storage.json `
+                  --parameters @$(Build.SourcesDirectory)\storage.parameters.dev.json `
+                  --verbose
