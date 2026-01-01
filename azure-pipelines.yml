@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - main
+      - storagedeployment  # <-- Your active branch
 
 variables:
   azureServiceConnection: 'AzureConn'    
@@ -18,11 +18,11 @@ stages:
         steps:
           - checkout: self
 
-          # Debug: show full repo structure
+          # Debug: confirm file presence
           - script: |
               echo "Repo root: $(Build.SourcesDirectory)"
-              dir $(Build.SourcesDirectory) /s
-            displayName: 'List all repo files'
+              dir $(Build.SourcesDirectory)
+            displayName: 'List repo root contents'
 
           - task: AzureCLI@2
             displayName: 'What-If Deployment'
@@ -34,8 +34,8 @@ stages:
                 az deployment group what-if `
                   --subscription $(subscriptionId) `
                   --resource-group $(resourceGroup) `
-                  --template-file $(Build.SourcesDirectory)\infra\storage.json `
-                  --parameters @$(Build.SourcesDirectory)\infra\storage.parameters.dev.json
+                  --template-file $(Build.SourcesDirectory)\storage.json `
+                  --parameters @$(Build.SourcesDirectory)\storage.parameters.dev.json
 
   - stage: Deploy
     displayName: 'Deploy Storage Account'
@@ -47,11 +47,11 @@ stages:
         steps:
           - checkout: self
 
-          # Debug: confirm files again before deploy
+          # Debug: confirm file presence again
           - script: |
               echo "Repo root: $(Build.SourcesDirectory)"
-              dir $(Build.SourcesDirectory)\infra
-            displayName: 'List infra folder contents'
+              dir $(Build.SourcesDirectory)
+            displayName: 'List repo root contents'
 
           - task: AzureCLI@2
             displayName: 'Deploy ARM Template'
@@ -64,6 +64,6 @@ stages:
                   --subscription $(subscriptionId) `
                   --resource-group $(resourceGroup) `
                   --name "storage-deploy-$(Build.BuildId)" `
-                  --template-file $(Build.SourcesDirectory)\infra\storage.json `
-                  --parameters @$(Build.SourcesDirectory)\infra\storage.parameters.dev.json `
+                  --template-file $(Build.SourcesDirectory)\storage.json `
+                  --parameters @$(Build.SourcesDirectory)\storage.parameters.dev.json `
                   --verbose
