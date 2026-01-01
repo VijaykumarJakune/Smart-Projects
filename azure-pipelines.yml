@@ -1,7 +1,14 @@
+name: $(Build.DefinitionName)-$(Date:yyyyMMdd)$(Rev:.r)
+
+pr:
+  branches:
+    include:
+      - main
+
 trigger:
   branches:
     include:
-      - storagedeployment  # <-- Your active branch
+      - main  # <-- Your active branch
 
 variables:
   azureServiceConnection: 'AzureConn'    
@@ -9,8 +16,8 @@ variables:
   resourceGroup: 'rg-storage-demo'             
 
 stages:
-  - stage: Validate
-    displayName: 'Validate ARM Template'
+  - stage: Build
+    displayName: 'Build Stage'
     jobs:
       - job: validate
         pool:
@@ -39,7 +46,7 @@ stages:
 
   - stage: Deploy
     displayName: 'Deploy Storage Account'
-    dependsOn: Validate
+    dependsOn: Build
     jobs:
       - job: deploy
         pool:
