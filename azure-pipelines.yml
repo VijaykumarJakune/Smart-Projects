@@ -8,7 +8,7 @@ pr:
 trigger:
   branches:
     include:
-      - main  # <-- Your active branch
+      - main
 
 variables:
   azureServiceConnection: 'AzureConn'    
@@ -25,7 +25,6 @@ stages:
         steps:
           - checkout: self
 
-          # Debug: confirm file presence
           - script: |
               echo "Repo root: $(Build.SourcesDirectory)"
               dir $(Build.SourcesDirectory)
@@ -47,6 +46,7 @@ stages:
   - stage: Deploy
     displayName: 'Deploy Storage Account'
     dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
       - job: deploy
         pool:
@@ -54,7 +54,6 @@ stages:
         steps:
           - checkout: self
 
-          # Debug: confirm file presence again
           - script: |
               echo "Repo root: $(Build.SourcesDirectory)"
               dir $(Build.SourcesDirectory)
