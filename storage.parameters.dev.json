@@ -1,18 +1,39 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "location": { "value": "centralindia" },
-        "storageAccountName": { "value": "ststoragedemo001" },
-        "skuName": { "value": "Standard_LRS" },
-        "isHnsEnabled": { "value": false },
-        "allowBlobPublicAccess": { "value": false },
-        "minTlsVersion": { "value": "TLS1_2" },
-        "publicNetworkAccess": { "value": "Enabled" },
-        "ipRules": { "value": [] },
-        "-demo\",": null,
-        "env": "dev",
-        "owner": "shankar.jakune",
-        "costCenter": "infra"
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "centralindia"
+    },
+    "storageAccountName": {
+      "value": "ststoragedemo001"
+    },
+    "skuName": {
+      "value": "Standard_LRS"
+    },
+    "isHnsEnabled": {
+      "value": false
+    },
+    "allowBlobPublicAccess": {
+      "value": false
+    },
+    "minTlsVersion": {
+      "value": "TLS1_2"
+    },
+    "publicNetworkAccess": {
+      "value": "Enabled"
+    },
+    "ipRules": {
+      "value": []
+    },
+    "env": {
+      "value": "dev"
+    },
+    "owner": {
+      "value": "shankar.jakune"
+    },
+    "costCenter": {
+      "value": "infra"
     }
+  }
 }
