@@ -20,20 +20,25 @@
     "minTlsVersion": {
       "value": "TLS1_2"
     },
+    "tags": {
+      "value": {
+        "project": "columbia-sci",
+        "env": "dev",
+        "owner": "shankar.jakune",
+        "costCenter": "infra"
+      }
+    },
     "publicNetworkAccess": {
       "value": "Enabled"
     },
     "ipRules": {
       "value": []
     },
-    "env": {
-      "value": "dev"
+    "createContainers": {
+      "value": true
     },
-    "owner": {
-      "value": "shankar.jakune"
-    },
-    "costCenter": {
-      "value": "infra"
+    "containers": {
+      "value": [ "raw", "staging", "processed" ]
     }
   }
 }
